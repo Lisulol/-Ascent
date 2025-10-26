@@ -1,20 +1,13 @@
 import { Button } from "@/components/ui/button";
+import { MoveLeft } from "lucide-react";
 
 interface MenuPageProps {
-  Pipegap: number;
-  isPlaying: boolean;
-  isMenuOpen: boolean;
-  basePipeGap: number;
   setBasePipeGap: (value: number) => void;
   setIsPlaying: (value: boolean) => void;
   setMenuOpen: (value: boolean) => void;
 }
 
 export default function MenuPage({
-  Pipegap,
-  isPlaying,
-  isMenuOpen,
-  basePipeGap,
   setBasePipeGap,
   setIsPlaying,
   setMenuOpen,
@@ -37,8 +30,8 @@ export default function MenuPage({
   }
 
   return (
-    <div className="z-999 bg-cyan-200 h-screen w-full flex justify-center items-center ">
-      <div className="h-3/4 w-3/4 bg-white border-4 border-[#e67104] rounded-4xl">
+    <div className="z-999 h-screen w-full flex justify-center items-center ">
+      <div className="animate-[fadeIn_0.15s_ease-in] h-3/4 w-3/4 bg-white border-4 border-[#e67104] rounded-4xl">
         <div className="h-full w-full flex items-center flex-col">
           <div className=" text-[#ff7b00] flex-col border-b-2 border-[#e67104] flex items-center justify-center h-1/4 w-full font-bold font-mono">
             <h1 className="text-6xl text-center pt-10">!Ascent</h1>

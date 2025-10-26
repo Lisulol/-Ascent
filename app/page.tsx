@@ -26,9 +26,19 @@ export default function Main() {
   const [coin] = useState(() =>
     typeof window !== "undefined" ? new Audio("/sounds/coin.mp3") : null,
   );
+  type Leaf = {
+    id: number;
+    x: number;
+    y: number;
+    speed: number;
+    rotation: number;
+    rotationSpeed: number;
+  };
+  const [leaves, setLeaves] = useState<Leaf[]>([]);
 
   useEffect(() => {
     setgamerandomness(Math.floor(Math.random() * 10000));
+    setLeaves(generateLeaves());
   }, []);
 
   const actualSpeed = isSlowedDown ? speed * 0.33 : speed;
@@ -75,10 +85,57 @@ export default function Main() {
       }
     }
   }
+
   function handleCDIF() {
     setMenuOpen(true);
     setIsPlaying(false);
   }
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setLeaves((prevLeaves) =>
+        prevLeaves.map((leaf: Leaf) => {
+          let newY = leaf.y + leaf.speed;
+          let newRotation = leaf.rotation + leaf.rotationSpeed;
+          let newX = leaf.x;
+
+          if (newY > window.innerHeight + 50) {
+            newY = -50;
+            newX = Math.random() * window.innerWidth;
+          }
+
+          return {
+            ...leaf,
+            y: newY,
+            rotation: newRotation,
+            x: newX,
+          };
+        }),
+      );
+    }, 16);
+
+    return () => clearInterval(id);
+  }, []);
+
+  function generateLeaves(): Leaf[] {
+    const leaveslist: Leaf[] = [];
+
+    for (let i = 0; i < 20; i++) {
+      const X = Math.random() * window.innerWidth;
+      const Y = Math.random() * window.innerHeight;
+      leaveslist.push({
+        id: i,
+        x: X,
+        y: Y,
+        speed: Math.random() * 2 + 1,
+        rotation: Math.random() * 360,
+        rotationSpeed: Math.random() * 4 - 2,
+      });
+    }
+    return leaveslist;
+  }
+
+  const leavesGenerated = leaves;
 
   function generatePipes(pipegap: number) {
     const pipes = [];
@@ -88,7 +145,7 @@ export default function Main() {
     for (let i = -2; i < 15; i++) {
       const absolutePipeNumber = cycleOffset + i;
 
-      if (absolutePipeNumber < 1) {
+      if (absolutePipeNumber < 2) {
         continue;
       }
       const Y = absolutePipeNumber * gap - velocity;
@@ -290,13 +347,26 @@ export default function Main() {
 
   return (
     <div className="overflow-hidden min-h-screen min-w-full flex items-center justify-center gap-x-15">
-      <div className="fixed inset-0 z-99999 h-full w-full">
+      <div className="fixed inset-0 pointer-events-none z-0">
+        {leavesGenerated.map((leaf) => (
+          <div
+            key={leaf.id}
+            style={{
+              position: "absolute",
+              left: `${leaf.x}px`,
+              top: `${leaf.y}px`,
+              transform: `rotate(${leaf.rotation}deg)`,
+              fontSize: "24px",
+              opacity: 0.7,
+            }}
+          >
+            🍂
+          </div>
+        ))}
+      </div>
+      <div className=" fixed inset-0 z-99999 h-full w-full">
         {MenuOpen && (
           <MenuPage
-            isPlaying={isPlaying}
-            Pipegap={pipegap}
-            isMenuOpen={MenuOpen}
-            basePipeGap={basePipeGap}
             setBasePipeGap={setBasePipeGap}
             setIsPlaying={setIsPlaying}
             setMenuOpen={setMenuOpen}
@@ -305,9 +375,11 @@ export default function Main() {
       </div>
       <div className="fixed inset-0 z-999999 flex items-center justify-center pointer-events-none">
         {!isPlaying && !MenuOpen && (
-          <div className="animate-[fadeIn_0.15s_ease-in] pointer-events-auto flex items-center justify-center bg-cyan-200 border-4 border-[#ff7b00] rounded-xl p-6 max-w-md w-full mx-4">
-            <p className="font-mono text-[#ff7b00] text-4xl md:text-6xl text-center">
+          <div className="flex-col animate-[fadeIn_0.15s_ease-in] pointer-events-auto flex items-center justify-center bg-cyan-200 border-4 border-[#ff7b00] rounded-xl p-6 max-w-md w-full mx-4">
+            <p className="font-mono text-[#ff7b00] text-4xl md:text-6xl gap-x-5 text-center">
               U died <br />
+            </p>
+            <div className="flex flex-row gap-x-5 justify-center items-center mt-4">
               <Button
                 variant="outline"
                 onClick={handleRestart}
@@ -322,98 +394,98 @@ export default function Main() {
               >
                 Return
               </Button>
-            </p>
+            </div>
           </div>
         )}
       </div>
-      <div className="flex flex-row gap-x-15 relative left-35">
-        <div className="flex-col min-h-screen p-2 w-160 border-6 gap-y-1 rounded-2xl border-[#e67104] bg-[#ff7b00]  flex justify-center">
-          <div className="flex justify-center items-center text-3xl">
-            <span className="font-mono font-bold text-white text-xl capitalize">
-              !Ascent
-            </span>
-          </div>
-          <div
-            ref={containerRef}
-            className="bg-cyan-200 flex-1 rounded-2xl overflow-hidden relative"
-            style={{ height: "calc(100% - 50px)" }}
-          >
-            <div
-              className={`absolute h-7 w-7 rounded-full flex items-center justify-center ${
-                activeShield
-                  ? "bg-blue-400 ring-4 ring-blue-300 animate-pulse-ring"
-                  : "bg-[#ff7b00]"
-              }`}
-              style={{
-                left: `calc(50% + ${position}px)`,
-                top: `${playerCenterY}px`,
-                transform: "translate(-50%, -50%)",
-              }}
-            >
-              ^.^
+      {!MenuOpen && (
+        <div className="flex flex-row gap-x-15 relative left-35">
+          <div className="flex-col min-h-screen p-2 w-160 border-6 gap-y-1 rounded-2xl border-[#e67104] bg-[#ff7b00]  flex justify-center">
+            <div className="flex justify-center items-center text-3xl">
+              <span className="font-mono font-bold text-white text-xl capitalize">
+                !Ascent
+              </span>
             </div>
-            {pickupsGenerated
-              .filter((pickup) => !collectedPickups.has(pickup.id))
-              .map((pickup) => {
-                let emoji = "";
-                if (pickup.type === "shield") {
-                  emoji = "🛡️";
-                } else if (pickup.type === "slowdown") {
-                  emoji = "🐢";
-                } else if (pickup.type === "gap") {
-                  emoji = "🕳️";
-                } else if (pickup.type === "+10score") {
-                  emoji = "⭐";
-                }
+            <div
+              ref={containerRef}
+              className="bg-cyan-200 flex-1 rounded-2xl overflow-hidden relative"
+              style={{ height: "calc(100% - 50px)" }}
+            >
+              <div
+                className={`absolute h-7 w-7 rounded-full flex items-center justify-center ${
+                  activeShield
+                    ? "bg-blue-400 ring-4 ring-blue-300 animate-pulse-ring"
+                    : "bg-[#ff7b00]"
+                }`}
+                style={{
+                  left: `calc(50% + ${position}px - 14px)`,
+                  top: `${playerCenterY - 14}px`,
+                }}
+              >
+                <span>^.^</span>
+              </div>
+              {pickupsGenerated
+                .filter((pickup) => !collectedPickups.has(pickup.id))
+                .map((pickup) => {
+                  let emoji = "";
+                  if (pickup.type === "shield") {
+                    emoji = "🛡️";
+                  } else if (pickup.type === "slowdown") {
+                    emoji = "🐢";
+                  } else if (pickup.type === "gap") {
+                    emoji = "🕳️";
+                  } else if (pickup.type === "+10score") {
+                    emoji = "⭐";
+                  }
 
-                return (
+                  return (
+                    <div
+                      key={pickup.id}
+                      className="absolute bg-yellow-400 h-6 w-6 rounded-full border-2 border-yellow-600"
+                      style={{
+                        left: `${pickup.x}px`,
+                        top: `${pickup.y}px`,
+                      }}
+                    >
+                      {emoji}
+                    </div>
+                  );
+                })}
+              {pipes.map((pipe) => (
+                <div
+                  key={pipe.id}
+                  className="absolute w-full"
+                  style={{ top: `${pipe.y}px` }}
+                >
                   <div
-                    key={pickup.id}
-                    className="absolute bg-yellow-400 h-6 w-6 rounded-full border-2 border-yellow-600"
+                    className="absolute"
                     style={{
-                      left: `${pickup.x}px`,
-                      top: `${pickup.y}px`,
+                      right: `calc(100% - ${pipe.gapPosition}px)`,
                     }}
                   >
-                    {emoji}
+                    <div className="rotate-180">
+                      <Pipe length={pipe.leftLength} />
+                    </div>
                   </div>
-                );
-              })}
-            {pipes.map((pipe) => (
-              <div
-                key={pipe.id}
-                className="absolute w-full"
-                style={{ top: `${pipe.y}px` }}
-              >
-                <div
-                  className="absolute"
-                  style={{
-                    right: `calc(100% - ${pipe.gapPosition}px)`,
-                    transformOrigin: "right center",
-                  }}
-                >
-                  <div className="rotate-180">
-                    <Pipe length={pipe.leftLength} />
-                  </div>
-                </div>
 
-                <div
-                  className="absolute"
-                  style={{
-                    left: `${pipe.gapPosition + pipe.gapWidth}px`,
-                  }}
-                >
-                  <Pipe length={pipe.rightLength} />
+                  <div
+                    className="absolute"
+                    style={{
+                      left: `${pipe.gapPosition + pipe.gapWidth}px`,
+                    }}
+                  >
+                    <Pipe length={pipe.rightLength} />
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
+          </div>
+          <div className="font-mono flex flex-col h-50 w-50 justify-center items-center bg-cyan-200 border-4 border-[#ff7b00] rounded-xl p-4">
+            <span className="text-2xl font-bold text-[#ff7b00]">Score:</span>
+            <span className="text-4xl font-bold text-[#ff7b00]">{score}</span>
           </div>
         </div>
-        <div className="font-mono flex flex-col h-50 w-50 justify-center items-center bg-cyan-200 border-4 border-[#ff7b00] rounded-xl p-4">
-          <span className="text-2xl font-bold text-[#ff7b00]">Score:</span>
-          <span className="text-4xl font-bold text-[#ff7b00]">{score}</span>
-        </div>
-      </div>
+      )}
     </div>
   );
 }
