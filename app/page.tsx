@@ -39,6 +39,7 @@ export default function Main() {
   useEffect(() => {
     setgamerandomness(Math.floor(Math.random() * 10000));
     setLeaves(generateLeaves());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const actualSpeed = isSlowedDown ? speed * 0.33 : speed;
@@ -96,7 +97,7 @@ export default function Main() {
       setLeaves((prevLeaves) =>
         prevLeaves.map((leaf: Leaf) => {
           let newY = leaf.y + leaf.speed;
-          let newRotation = leaf.rotation + leaf.rotationSpeed;
+          const newRotation = leaf.rotation + leaf.rotationSpeed;
           let newX = leaf.x;
 
           if (newY > window.innerHeight + 50) {
@@ -338,6 +339,7 @@ export default function Main() {
       checkScore();
       checkPickupCollision();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [velocity, position]);
   useEffect(() => {
     if (score >= 15) {

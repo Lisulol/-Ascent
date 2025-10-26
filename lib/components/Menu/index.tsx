@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/button";
-import { MoveLeft } from "lucide-react";
 
 interface MenuPageProps {
   setBasePipeGap: (value: number) => void;
