@@ -2,8 +2,8 @@
 
 ## Description:
 
-    A quick falling game. Pick up powerups, dont hit the pipes. 3 Difficulites.
-    Controls either A and D or arrows
+A quick falling game. Pick up powerups, dont hit the pipes. 3 Difficulites.
+Controls either A and D or arrows
 
 ## Dependecies:
 

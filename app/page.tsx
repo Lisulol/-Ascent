@@ -23,8 +23,13 @@ export default function Main() {
   const [gamerandomness, setgamerandomness] = useState(0);
   const [MenuOpen, setMenuOpen] = useState(true);
   const [basePipeGap, setBasePipeGap] = useState(100);
+  const [highscore, setHighscore] = useState(0);
+  const [newrecord, setNewrecord] = useState(false);
   const [coin] = useState(() =>
     typeof window !== "undefined" ? new Audio("/sounds/coin.mp3") : null,
+  );
+  const [high] = useState(() =>
+    typeof window !== "undefined" ? new Audio("sounds/high.mp3") : null,
   );
   type Leaf = {
     id: number;
@@ -36,6 +41,20 @@ export default function Main() {
   };
   const [leaves, setLeaves] = useState<Leaf[]>([]);
 
+  useEffect(() => {
+    if (score > highscore) {
+      setHighscore(score);
+      setNewrecord(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [score]);
+
+  useEffect(() => {
+    if (!isPlaying && newrecord) {
+      high?.play();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPlaying]);
   useEffect(() => {
     setgamerandomness(Math.floor(Math.random() * 10000));
     setLeaves(generateLeaves());
@@ -66,6 +85,7 @@ export default function Main() {
     setActiveShield(false);
     setIsSlowedDown(false);
     setIsGapActive(false);
+    setNewrecord(false);
     shieldUsedRef.current = false;
     passingPipeIdRef.current = null;
     setgamerandomness(Math.floor(Math.random() * 10000));
@@ -397,6 +417,9 @@ export default function Main() {
                 Return
               </Button>
             </div>
+            <div className="flex bg-[#ff7b00] border-2 rounded-2xl p-2 border-[#e67104] animate-pulse">
+              {newrecord && <span>New Highscore!</span>}
+            </div>
           </div>
         )}
       </div>
@@ -485,6 +508,9 @@ export default function Main() {
           <div className="font-mono flex flex-col h-50 w-50 justify-center items-center bg-cyan-200 border-4 border-[#ff7b00] rounded-xl p-4">
             <span className="text-2xl font-bold text-[#ff7b00]">Score:</span>
             <span className="text-4xl font-bold text-[#ff7b00]">{score}</span>
+            <span className="text-xl font-bold text-[#ff7b00]">
+              High score: {highscore}
+            </span>
           </div>
         </div>
       )}
