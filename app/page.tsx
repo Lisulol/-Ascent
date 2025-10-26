@@ -1,19 +1,13 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import Pipe from "@/lib/components/Pipe/pipe";
+import MenuPage from "@/lib/components/Menu";
+import Pipe from "@/lib/components/Pipe";
 import { useEffect, useRef, useState } from "react";
-
-type Pickup = {
-  id: number;
-  x: number;
-  y: number;
-  type: string;
-};
 
 export default function Main() {
   const [speed, setSpeed] = useState(3);
   const [velocity, setVelocity] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(false);
   const [position, setPosition] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const [score, setScore] = useState(0);
@@ -26,12 +20,16 @@ export default function Main() {
   const types = ["shield", "slowdown", "gap", "+10score"];
   const [isSlowedDown, setIsSlowedDown] = useState<boolean>(false);
   const [isGapActive, setIsGapActive] = useState<boolean>(false);
-  const [gamerandomness, setgamerandomness] = useState(() =>
-    Math.floor(Math.random() * 10000),
-  );
+  const [gamerandomness, setgamerandomness] = useState(0);
+  const [MenuOpen, setMenuOpen] = useState(true);
+  const [basePipeGap, setBasePipeGap] = useState(100);
   const [coin] = useState(() =>
     typeof window !== "undefined" ? new Audio("/sounds/coin.mp3") : null,
   );
+
+  useEffect(() => {
+    setgamerandomness(Math.floor(Math.random() * 10000));
+  }, []);
 
   const actualSpeed = isSlowedDown ? speed * 0.33 : speed;
   const pipegap = isGapActive ? 50 : 0;
@@ -42,17 +40,21 @@ export default function Main() {
   useEffect(() => {
     if (!isPlaying) {
       setSpeed(0);
+    } else {
+      setSpeed(3);
     }
   }, [isPlaying]);
 
   function handleRestart() {
     setVelocity(0);
     setPosition(0);
-    setSpeed(4);
+    setSpeed(3);
     setScore(0);
     setPassedPipes(new Set());
     setCollectedPickups(new Set());
     setActiveShield(false);
+    setIsSlowedDown(false);
+    setIsGapActive(false);
     shieldUsedRef.current = false;
     passingPipeIdRef.current = null;
     setgamerandomness(Math.floor(Math.random() * 10000));
@@ -73,6 +75,10 @@ export default function Main() {
       }
     }
   }
+  function handleCDIF() {
+    setMenuOpen(true);
+    setIsPlaying(false);
+  }
 
   function generatePipes(pipegap: number) {
     const pipes = [];
@@ -88,7 +94,7 @@ export default function Main() {
       const Y = absolutePipeNumber * gap - velocity;
 
       const gapPosition = 100 + ((absolutePipeNumber * 97) % 150);
-      const gapWidth = 100 + pipegap;
+      const gapWidth = basePipeGap + pipegap;
       const leftLength = gapPosition - 32;
       const rightLength = 300 + ((absolutePipeNumber * 131) % 150);
 
@@ -284,8 +290,21 @@ export default function Main() {
 
   return (
     <div className="overflow-hidden min-h-screen min-w-full flex items-center justify-center gap-x-15">
-      <div className="fixed inset-0 z-9999 flex items-center justify-center pointer-events-none">
-        {!isPlaying && (
+      <div className="fixed inset-0 z-99999 h-full w-full">
+        {MenuOpen && (
+          <MenuPage
+            isPlaying={isPlaying}
+            Pipegap={pipegap}
+            isMenuOpen={MenuOpen}
+            basePipeGap={basePipeGap}
+            setBasePipeGap={setBasePipeGap}
+            setIsPlaying={setIsPlaying}
+            setMenuOpen={setMenuOpen}
+          />
+        )}
+      </div>
+      <div className="fixed inset-0 z-999999 flex items-center justify-center pointer-events-none">
+        {!isPlaying && !MenuOpen && (
           <div className="animate-[fadeIn_0.15s_ease-in] pointer-events-auto flex items-center justify-center bg-cyan-200 border-4 border-[#ff7b00] rounded-xl p-6 max-w-md w-full mx-4">
             <p className="font-mono text-[#ff7b00] text-4xl md:text-6xl text-center">
               U died <br />
@@ -295,6 +314,13 @@ export default function Main() {
                 className="bg-cyan-200 mt-4"
               >
                 Restart
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleCDIF}
+                className="bg-cyan-200 mt-4"
+              >
+                Return
               </Button>
             </p>
           </div>
